@@ -1,11 +1,696 @@
 <!doctype html>
 <html lang="zh-Hant">
 <head>
-  <meta charset="utf-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#0f172a" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="工作登錄" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <title>律師工作登錄</title>
+  <style>
+    :root {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC", sans-serif;
+      color: #0f172a;
+      background: #f8fafc;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #f8fafc; }
+    button, input, select, textarea { font: inherit; }
+    button { cursor: pointer; }
+    button:disabled { cursor: not-allowed; opacity: .42; }
+    .app-shell { min-height: 100vh; max-width: 1160px; margin: 0 auto; padding: 22px; }
+    .header { display: flex; justify-content: space-between; align-items: flex-end; gap: 18px; margin-bottom: 18px; }
+    .eyebrow { display: inline-flex; align-items: center; gap: 7px; background: white; border-radius: 999px; padding: 7px 11px; color: #64748b; box-shadow: 0 8px 22px rgba(15,23,42,.06); }
+    h1 { margin: 10px 0 4px; font-size: clamp(28px, 5vw, 42px); line-height: 1.1; }
+    p { margin: 0; color: #64748b; line-height: 1.65; }
+    .layout { display: grid; grid-template-columns: 380px 1fr; gap: 16px; }
+    .panel { background: white; border-radius: 26px; padding: 18px; box-shadow: 0 10px 28px rgba(15,23,42,.07); margin-bottom: 16px; }
+    .task-panel { grid-column: 2; grid-row: 1 / span 2; }
+    .panel-title { font-weight: 800; font-size: 19px; display: flex; align-items: center; gap: 8px; }
+    .date-box { background: white; border-radius: 20px; padding: 12px; box-shadow: 0 10px 28px rgba(15,23,42,.07); }
+    .date-box label, .field-label { display: block; font-size: 13px; color: #64748b; font-weight: 700; margin: 14px 0 7px; }
+    input, select, textarea { width: 100%; border: 1px solid #e2e8f0; border-radius: 16px; padding: 12px 13px; background: white; outline: none; }
+    textarea { resize: vertical; }
+    input:focus, select:focus, textarea:focus { border-color: #64748b; }
+    .category-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin-top: 14px; }
+    .category-card { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 18px; padding: 14px; color: #64748b; min-height: 86px; }
+    .category-card strong { font-size: 16px; }
+    .category-card.active.contact { background: #dbeafe; color: #1d4ed8; border-color: #bfdbfe; }
+    .category-card.active.admin { background: #fef3c7; color: #b45309; border-color: #fde68a; }
+    .category-card.active.legal { background: #dcfce7; color: #15803d; border-color: #bbf7d0; }
+    .category-card.active.home { background: #f3e8ff; color: #7e22ce; border-color: #e9d5ff; }
+    .button-row { display: flex; gap: 9px; margin-top: 13px; }
+    button { border: 1px solid #e2e8f0; background: white; border-radius: 15px; padding: 10px 13px; display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 42px; color: #0f172a; }
+    button.primary { background: #0f172a; color: white; border-color: #0f172a; flex: 1; }
+    button.danger, button.delete { color: #dc2626; border-color: #fee2e2; }
+    .hint { font-size: 13px; margin-top: 9px; }
+    .task-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 15px; }
+    .toolbar { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+    .empty { border: 1px dashed #cbd5e1; color: #64748b; background: #f8fafc; border-radius: 24px; text-align: center; padding: 56px 20px; }
+    .task-list { display: flex; flex-direction: column; gap: 11px; }
+    .task { display: grid; grid-template-columns: 34px 1fr auto; gap: 11px; align-items: flex-start; border: 1px solid #edf2f7; border-radius: 24px; padding: 13px; background: white; box-shadow: 0 6px 16px rgba(15,23,42,.045); animation: fadeIn .18s ease-out; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+    .task.done { opacity: .58; }
+    .check { width: 30px; height: 30px; border-radius: 999px; padding: 0; color: transparent; }
+    .check.checked { background: #22c55e; color: white; border-color: #22c55e; }
+    .chips { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 8px; }
+    .chip { display: inline-flex; align-items: center; gap: 4px; padding: 5px 9px; border-radius: 999px; font-size: 12px; font-weight: 800; }
+    .chip.contact { background: #dbeafe; color: #1d4ed8; }
+    .chip.admin { background: #fef3c7; color: #b45309; }
+    .chip.legal { background: #dcfce7; color: #15803d; }
+    .chip.home { background: #f3e8ff; color: #7e22ce; }
+    .chip.gray { background: #f1f5f9; color: #475569; }
+    .chip.indigo { background: #e0e7ff; color: #4338ca; }
+    .chip.rose { background: #ffe4e6; color: #be123c; }
+    .task h3 { margin: 0; font-size: 17px; word-break: break-word; }
+    .task.done h3 { text-decoration: line-through; }
+    .task p { margin-top: 6px; white-space: pre-wrap; word-break: break-word; }
+    .task-actions { display: flex; flex-direction: column; gap: 5px; }
+    .task-actions button { min-height: 32px; padding: 6px 9px; border-radius: 12px; }
+    .modal-backdrop { position: fixed; inset: 0; background: rgba(15,23,42,.45); display: flex; align-items: center; justify-content: center; padding: 18px; z-index: 99; backdrop-filter: blur(5px); }
+    .modal { width: min(420px, 100%); background: white; border-radius: 26px; padding: 20px; box-shadow: 0 24px 60px rgba(15,23,42,.24); position: relative; }
+    .modal-title { font-size: 20px; font-weight: 900; display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+    .modal-close { position: absolute; right: 15px; top: 15px; min-height: 34px; padding: 7px; }
+    .full { width: 100%; margin-top: 14px; }
+    .install-note { background: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af; border-radius: 18px; padding: 12px 14px; margin-bottom: 16px; font-size: 14px; line-height: 1.6; }
+    @media (max-width: 860px) {
+      .app-shell { padding: 14px; }
+      .header, .task-head { flex-direction: column; align-items: stretch; }
+      .layout { display: block; }
+      .toolbar { justify-content: flex-start; }
+      .task { grid-template-columns: 34px 1fr; }
+      .task-actions { grid-column: 1 / -1; flex-direction: row; justify-content: flex-end; flex-wrap: wrap; }
+      .button-row { flex-wrap: wrap; }
+      .button-row button, .button-row input { flex: 1 1 auto; }
+    }
+  </style>
 </head>
 <body>
-  <h1>測試成功</h1>
-  <p>如果你看到這行，表示 GitHub Pages 可以正常顯示。</p>
+  <div class="app-shell">
+    <header class="header">
+      <div>
+        <div class="eyebrow">📅 每日律師工作登錄</div>
+        <h1>待完成工作清單</h1>
+        <p>本機儲存、可匯出備份、可加入 iPhone 主畫面使用。</p>
+      </div>
+      <div class="date-box">
+        <label for="dateInput">登錄日期</label>
+        <input id="dateInput" type="date" />
+      </div>
+    </header>
+
+    <div class="install-note">
+      iPhone 使用方式：用 Safari 開啟這個頁面 → 分享 → 加入主畫面。資料存在本機，請定期按「匯出備份」。
+    </div>
+
+    <main class="layout">
+      <section>
+        <div class="panel">
+          <div class="panel-title">➕ 新增工作</div>
+          <div id="categoryGrid" class="category-grid"></div>
+
+          <label class="field-label" for="subtypeSelect">工作類型</label>
+          <select id="subtypeSelect"></select>
+
+          <label class="field-label" for="titleInput">工作內容</label>
+          <input id="titleInput" placeholder="例如：回覆王先生電話" />
+
+          <label class="field-label" for="noteInput">備註</label>
+          <textarea id="noteInput" rows="3" placeholder="案號、對象、應處理事項、附件位置等"></textarea>
+
+          <div class="button-row">
+            <button id="addTaskBtn" class="primary">登記</button>
+            <button id="importPreviousBtn">↩️ 前日轉入</button>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-title">🔔 鬧鐘提醒</div>
+          <label class="field-label" for="alarmTaskSelect">選擇工作</label>
+          <select id="alarmTaskSelect">
+            <option value="">選擇一個工作</option>
+          </select>
+          <div class="button-row">
+            <input id="alarmTimeInput" type="time" />
+            <button id="setAlarmBtn">設定</button>
+          </div>
+          <p class="hint">提醒會在 App 開啟期間以小聲提示音約 5 秒及畫面提醒呈現。</p>
+        </div>
+      </section>
+
+      <section class="panel task-panel">
+        <div class="task-head">
+          <div>
+            <div id="taskDateTitle" class="panel-title"></div>
+            <p id="taskCount" class="hint"></p>
+          </div>
+          <div class="toolbar">
+            <button id="exportBtn">⬇️ 匯出備份</button>
+            <button id="importBtn">⬆️ 匯入備份</button>
+            <input id="importFileInput" type="file" accept="application/json,.json" hidden />
+            <button id="clearDoneBtn">刪除已完成</button>
+            <button id="clearTodayBtn" class="danger">清除本日</button>
+            <button id="clearAllBtn" class="danger">清除全部資料</button>
+          </div>
+        </div>
+        <div id="taskContainer"></div>
+      </section>
+    </main>
+  </div>
+
+  <div id="backupModal" class="modal-backdrop" style="display:none;">
+    <div class="modal">
+      <div class="modal-title">🔔 請匯出備份</div>
+      <p>現在已經下午 5 點以後。離開 App 前，建議先匯出今天的工作備份。</p>
+      <div class="button-row">
+        <button id="backupLaterBtn">稍後</button>
+        <button id="backupNowBtn" class="primary">立即匯出</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="alarmModal" class="modal-backdrop" style="display:none;">
+    <div class="modal">
+      <button id="alarmCloseBtn" class="modal-close">✕</button>
+      <div class="modal-title">🔔 工作提醒</div>
+      <p id="alarmSubtype"></p>
+      <h2 id="alarmTitle"></h2>
+      <button id="alarmStopBtn" class="primary full">手動關閉</button>
+    </div>
+  </div>
+
+  <script>
+    const CATEGORY_CONFIG = {
+      contact: { label: "聯絡", icon: "✉️", items: ["電話回覆", "訊息", "電郵", "郵件", "聯絡他人", "其他"] },
+      admin: { label: "行政", icon: "📋", items: ["報價請款", "帳務登載", "收回簽收單", "訂車票", "發薪領零用金", "完成代扣繳", "勞健保", "其他"] },
+      legal: { label: "法律", icon: "⚖️", items: ["書狀", "電子筆錄", "電子卷", "卷證整理", "登記開會開庭", "其他"] },
+      home: { label: "家務", icon: "🏠", items: ["家務事項", "採買", "繳費", "家庭聯絡", "其他"] }
+    };
+
+    const CATEGORY_ORDER = ["contact", "admin", "legal", "home"];
+    const STORAGE_KEY = "lawyer-work-log-v1";
+    const BACKUP_REMINDER_KEY = "lawyer-work-log-needs-backup-reminder";
+
+    let store = loadStore();
+    let dateKey = todayKey();
+    let category = "contact";
+    let alarmTimers = [];
+    let audioState = null;
+
+    const el = {
+      dateInput: document.getElementById("dateInput"),
+      categoryGrid: document.getElementById("categoryGrid"),
+      subtypeSelect: document.getElementById("subtypeSelect"),
+      titleInput: document.getElementById("titleInput"),
+      noteInput: document.getElementById("noteInput"),
+      addTaskBtn: document.getElementById("addTaskBtn"),
+      importPreviousBtn: document.getElementById("importPreviousBtn"),
+      alarmTaskSelect: document.getElementById("alarmTaskSelect"),
+      alarmTimeInput: document.getElementById("alarmTimeInput"),
+      setAlarmBtn: document.getElementById("setAlarmBtn"),
+      taskDateTitle: document.getElementById("taskDateTitle"),
+      taskCount: document.getElementById("taskCount"),
+      taskContainer: document.getElementById("taskContainer"),
+      exportBtn: document.getElementById("exportBtn"),
+      importBtn: document.getElementById("importBtn"),
+      importFileInput: document.getElementById("importFileInput"),
+      clearDoneBtn: document.getElementById("clearDoneBtn"),
+      clearTodayBtn: document.getElementById("clearTodayBtn"),
+      clearAllBtn: document.getElementById("clearAllBtn"),
+      backupModal: document.getElementById("backupModal"),
+      backupLaterBtn: document.getElementById("backupLaterBtn"),
+      backupNowBtn: document.getElementById("backupNowBtn"),
+      alarmModal: document.getElementById("alarmModal"),
+      alarmSubtype: document.getElementById("alarmSubtype"),
+      alarmTitle: document.getElementById("alarmTitle"),
+      alarmCloseBtn: document.getElementById("alarmCloseBtn"),
+      alarmStopBtn: document.getElementById("alarmStopBtn")
+    };
+
+    init();
+
+    function init() {
+      el.dateInput.value = dateKey;
+      renderCategoryButtons();
+      renderSubtypeOptions();
+      bindEvents();
+      render();
+      scheduleAlarms();
+      checkBackupReminderOnOpen();
+    }
+
+    function bindEvents() {
+      el.dateInput.addEventListener("change", () => {
+        dateKey = el.dateInput.value || todayKey();
+        render();
+        scheduleAlarms();
+      });
+      el.subtypeSelect.addEventListener("change", () => {});
+      el.addTaskBtn.addEventListener("click", addTask);
+      el.importPreviousBtn.addEventListener("click", importPreviousUnfinished);
+      el.exportBtn.addEventListener("click", exportBackup);
+      el.importBtn.addEventListener("click", () => el.importFileInput.click());
+      el.importFileInput.addEventListener("change", importBackup);
+      el.clearDoneBtn.addEventListener("click", clearDoneTasks);
+      el.clearTodayBtn.addEventListener("click", clearTodayTasks);
+      el.clearAllBtn.addEventListener("click", clearAllData);
+      el.setAlarmBtn.addEventListener("click", setAlarm);
+      el.backupLaterBtn.addEventListener("click", hideBackupModal);
+      el.backupNowBtn.addEventListener("click", () => { hideBackupModal(); exportBackup(); });
+      el.alarmCloseBtn.addEventListener("click", stopAlarm);
+      el.alarmStopBtn.addEventListener("click", stopAlarm);
+
+      window.addEventListener("beforeunload", (event) => {
+        if (!shouldRemindBackup()) return;
+        event.preventDefault();
+        event.returnValue = "請先匯出備份。";
+        return "請先匯出備份。";
+      });
+
+      document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "hidden" && shouldRemindBackup()) {
+          localStorage.setItem(BACKUP_REMINDER_KEY, "1");
+        }
+        if (document.visibilityState === "visible" && localStorage.getItem(BACKUP_REMINDER_KEY) === "1") {
+          localStorage.removeItem(BACKUP_REMINDER_KEY);
+          showBackupModal();
+        }
+      });
+    }
+
+    function renderCategoryButtons() {
+      el.categoryGrid.innerHTML = CATEGORY_ORDER.map(key => {
+        const config = CATEGORY_CONFIG[key];
+        return `<button class="category-card ${key === category ? `active ${key}` : ""}" data-category="${key}">
+          <span>${config.icon}</span><strong>${escapeHtml(config.label)}</strong>
+        </button>`;
+      }).join("");
+      el.categoryGrid.querySelectorAll("button").forEach(btn => {
+        btn.addEventListener("click", () => {
+          category = btn.dataset.category;
+          renderCategoryButtons();
+          renderSubtypeOptions();
+        });
+      });
+    }
+
+    function renderSubtypeOptions() {
+      el.subtypeSelect.innerHTML = CATEGORY_CONFIG[category].items
+        .map(item => `<option value="${escapeAttr(item)}">${escapeHtml(item)}</option>`)
+        .join("");
+    }
+
+    function render() {
+      saveStore();
+      const tasks = getTasks();
+      const unfinished = tasks.filter(task => !task.done).length;
+      el.taskDateTitle.textContent = `${formatDate(dateKey)} 工作`;
+      el.taskCount.textContent = `未完成 ${unfinished} 件，共 ${tasks.length} 件`;
+
+      const previousUnfinished = getPreviousUnfinished();
+      el.importPreviousBtn.disabled = previousUnfinished.length === 0;
+      el.clearDoneBtn.disabled = tasks.every(task => !task.done);
+      el.clearTodayBtn.disabled = tasks.length === 0;
+
+      renderAlarmSelect(tasks);
+      renderTasks(tasks);
+      scheduleAlarms();
+    }
+
+    function renderAlarmSelect(tasks) {
+      const currentValue = el.alarmTaskSelect.value;
+      const options = tasks.filter(task => !task.done).map(task => {
+        const c = CATEGORY_CONFIG[task.category];
+        return `<option value="${escapeAttr(task.id)}">${escapeHtml(c.label)} / ${escapeHtml(task.subtype)} / ${escapeHtml(task.title)}</option>`;
+      }).join("");
+      el.alarmTaskSelect.innerHTML = `<option value="">選擇一個工作</option>${options}`;
+      if (tasks.some(task => task.id === currentValue)) el.alarmTaskSelect.value = currentValue;
+    }
+
+    function renderTasks(tasks) {
+      if (tasks.length === 0) {
+        el.taskContainer.innerHTML = `<div class="empty">今天尚未登錄工作。</div>`;
+        return;
+      }
+      el.taskContainer.innerHTML = `<div class="task-list">${tasks.map((task, index) => taskHtml(task, index, tasks.length)).join("")}</div>`;
+      el.taskContainer.querySelectorAll("[data-action]").forEach(btn => {
+        btn.addEventListener("click", () => handleTaskAction(btn.dataset.action, btn.dataset.id));
+      });
+    }
+
+    function taskHtml(task, index, total) {
+      const config = CATEGORY_CONFIG[task.category];
+      const note = task.note ? `<p>${escapeHtml(task.note)}</p>` : "";
+      const imported = task.importedFrom ? `<span class="chip indigo">轉入自 ${escapeHtml(formatDate(task.importedFrom))}</span>` : "";
+      const alarm = task.alarmAt ? `<span class="chip rose">🔔 ${escapeHtml(task.alarmAt.slice(11, 16))}</span>` : "";
+      return `<article class="task ${task.done ? "done" : ""}">
+        <button class="check ${task.done ? "checked" : ""}" data-action="toggle" data-id="${escapeAttr(task.id)}">✓</button>
+        <div class="task-body">
+          <div class="chips">
+            <span class="chip ${task.category}">${config.icon} ${escapeHtml(config.label)}</span>
+            <span class="chip gray">${escapeHtml(task.subtype)}</span>
+            ${imported}
+            ${alarm}
+          </div>
+          <h3>${escapeHtml(task.title)}</h3>
+          ${note}
+        </div>
+        <div class="task-actions">
+          <button data-action="up" data-id="${escapeAttr(task.id)}" ${index === 0 ? "disabled" : ""}>↑</button>
+          <button data-action="down" data-id="${escapeAttr(task.id)}" ${index === total - 1 ? "disabled" : ""}>↓</button>
+          ${task.alarmAt ? `<button data-action="clearAlarm" data-id="${escapeAttr(task.id)}">🔕</button>` : ""}
+          <button class="delete" data-action="delete" data-id="${escapeAttr(task.id)}">🗑</button>
+        </div>
+      </article>`;
+    }
+
+    function handleTaskAction(action, id) {
+      if (action === "toggle") toggleDone(id);
+      if (action === "up") moveTask(id, -1);
+      if (action === "down") moveTask(id, 1);
+      if (action === "delete") deleteTask(id);
+      if (action === "clearAlarm") clearAlarm(id);
+    }
+
+    function addTask() {
+      const subtype = el.subtypeSelect.value;
+      const task = {
+        id: uid(),
+        category,
+        subtype,
+        title: el.titleInput.value.trim() || subtype,
+        note: el.noteInput.value.trim(),
+        done: false,
+        createdAt: new Date().toISOString(),
+        alarmAt: null,
+        position: defaultGroupedPosition(getTasks(), category)
+      };
+      updateTasks(dateKey, current => [...current, task]);
+      el.titleInput.value = "";
+      el.noteInput.value = "";
+    }
+
+    function deleteTask(id) {
+      updateTasks(dateKey, current => current.filter(task => task.id !== id));
+    }
+
+    function toggleDone(id) {
+      updateTasks(dateKey, current => current.map(task => {
+        if (task.id !== id) return task;
+        const nextDone = !task.done;
+        return { ...task, done: nextDone, alarmAt: nextDone ? null : task.alarmAt };
+      }));
+    }
+
+    function moveTask(id, direction) {
+      updateTasks(dateKey, current => {
+        const ordered = normalizeTasks(current);
+        const index = ordered.findIndex(task => task.id === id);
+        const nextIndex = index + direction;
+        if (index < 0 || nextIndex < 0 || nextIndex >= ordered.length) return ordered;
+        const next = [...ordered];
+        [next[index], next[nextIndex]] = [next[nextIndex], next[index]];
+        return next.map((task, i) => ({ ...task, position: i + 1 }));
+      });
+    }
+
+    function importPreviousUnfinished() {
+      const previous = getPreviousUnfinished();
+      if (previous.length === 0) return;
+      const previousDate = addDays(dateKey, -1);
+      updateTasks(dateKey, current => [
+        ...current,
+        ...previous.map((task, index) => ({
+          ...task,
+          id: uid(),
+          done: false,
+          alarmAt: null,
+          importedFrom: previousDate,
+          createdAt: new Date().toISOString(),
+          position: current.length + index + 1
+        }))
+      ]);
+    }
+
+    function clearDoneTasks() {
+      const doneCount = getTasks().filter(task => task.done).length;
+      if (doneCount === 0) return;
+      if (!window.confirm(`確定刪除 ${formatDate(dateKey)} 已完成的 ${doneCount} 筆工作？`)) return;
+      updateTasks(dateKey, current => current.filter(task => !task.done));
+    }
+
+    function clearTodayTasks() {
+      const tasks = getTasks();
+      if (tasks.length === 0) return;
+      const typed = window.prompt(`這會清除 ${formatDate(dateKey)} 的全部 ${tasks.length} 筆工作。若確定，請輸入：清除`);
+      if (typed !== "清除") return;
+      updateTasks(dateKey, () => []);
+    }
+
+    function clearAllData() {
+      const typed = window.prompt("這會清除本裝置內的全部工作資料。若確定，請輸入：全部清除");
+      if (typed !== "全部清除") return;
+      store = emptyStore();
+      render();
+    }
+
+    async function exportBackup() {
+      const payload = {
+        app: "lawyer-work-log",
+        version: 1,
+        exportedAt: new Date().toISOString(),
+        data: store
+      };
+      const fileName = `律師工作登錄備份-${todayKey()}.json`;
+      const file = new File([JSON.stringify(payload, null, 2)], fileName, { type: "application/json" });
+
+      if (navigator.canShare && navigator.share && navigator.canShare({ files: [file] })) {
+        try {
+          await navigator.share({ title: "律師工作登錄備份", text: "律師工作登錄備份檔", files: [file] });
+          return;
+        } catch (error) {
+          if (error && error.name === "AbortError") return;
+        }
+      }
+
+      const url = URL.createObjectURL(file);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    async function importBackup(event) {
+      const file = event.target.files && event.target.files[0];
+      event.target.value = "";
+      if (!file) return;
+      try {
+        const text = await file.text();
+        const parsed = JSON.parse(text);
+        const nextStore = parsed && parsed.data && parsed.data.byDate ? parsed.data : parsed;
+        if (!nextStore || !nextStore.byDate || typeof nextStore.byDate !== "object") {
+          alert("這不是有效的律師工作登錄備份檔。");
+          return;
+        }
+        const typed = window.prompt("匯入備份會覆蓋本機目前資料。若確定，請輸入：匯入");
+        if (typed !== "匯入") return;
+        store = { ...emptyStore(), ...nextStore };
+        saveStore();
+        render();
+        alert("備份已匯入完成。");
+      } catch (error) {
+        alert("備份檔讀取失敗，請確認檔案是否正確。");
+      }
+    }
+
+    function setAlarm() {
+      const id = el.alarmTaskSelect.value;
+      const time = el.alarmTimeInput.value;
+      const task = getTasks().find(t => t.id === id);
+      if (!task || !time) return;
+      const alarmAt = `${dateKey}T${time}:00`;
+      if (new Date(alarmAt).getTime() <= Date.now()) {
+        alert("提醒時間已經過去，請設定未來時間。");
+        return;
+      }
+      if ("Notification" in window && Notification.permission === "default") {
+        Notification.requestPermission().catch(() => {});
+      }
+      updateTasks(dateKey, current => current.map(t => t.id === id ? { ...t, alarmAt } : t));
+    }
+
+    function clearAlarm(id) {
+      updateTasks(dateKey, current => current.map(task => task.id === id ? { ...task, alarmAt: null } : task));
+    }
+
+    function scheduleAlarms() {
+      alarmTimers.forEach(clearTimeout);
+      alarmTimers = [];
+      const now = Date.now();
+      getTasks().forEach(task => {
+        if (!task.done && task.alarmAt) {
+          const alarmAt = new Date(task.alarmAt).getTime();
+          if (alarmAt > now) {
+            alarmTimers.push(setTimeout(() => triggerAlarm(task), alarmAt - now));
+          }
+        }
+      });
+    }
+
+    function triggerAlarm(task) {
+      el.alarmSubtype.textContent = task.subtype;
+      el.alarmTitle.textContent = task.title;
+      el.alarmModal.style.display = "flex";
+      if ("Notification" in window && Notification.permission === "granted") {
+        new Notification("律師工作提醒", { body: `${task.subtype}：${task.title}` });
+      }
+      playSoftBeep();
+      setTimeout(stopAlarm, 5000);
+    }
+
+    function playSoftBeep() {
+      try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        const ctx = new AudioContext();
+        const gain = ctx.createGain();
+        gain.gain.value = 0.035;
+        gain.connect(ctx.destination);
+        const beep = () => {
+          const osc = ctx.createOscillator();
+          osc.type = "sine";
+          osc.frequency.value = 660;
+          osc.connect(gain);
+          osc.start();
+          osc.stop(ctx.currentTime + 0.18);
+        };
+        beep();
+        const interval = setInterval(beep, 900);
+        audioState = { ctx, interval };
+      } catch (error) {}
+    }
+
+    function stopAlarm() {
+      if (audioState) {
+        clearInterval(audioState.interval);
+        if (audioState.ctx && audioState.ctx.close) audioState.ctx.close();
+        audioState = null;
+      }
+      el.alarmModal.style.display = "none";
+    }
+
+    function showBackupModal() { el.backupModal.style.display = "flex"; }
+    function hideBackupModal() { el.backupModal.style.display = "none"; }
+
+    function shouldRemindBackup() {
+      return new Date().getHours() >= 17 && getTasks().length > 0;
+    }
+
+    function checkBackupReminderOnOpen() {
+      if (localStorage.getItem(BACKUP_REMINDER_KEY) === "1" || shouldRemindBackup()) {
+        localStorage.removeItem(BACKUP_REMINDER_KEY);
+        if (shouldRemindBackup()) showBackupModal();
+      }
+    }
+
+    function getTasks(targetDate = dateKey) {
+      return normalizeTasks(store.byDate[targetDate] || []);
+    }
+
+    function updateTasks(targetDate, updater) {
+      const current = store.byDate[targetDate] || [];
+      store = {
+        ...store,
+        byDate: {
+          ...store.byDate,
+          [targetDate]: renumber(updater(current))
+        }
+      };
+      render();
+    }
+
+    function getPreviousUnfinished() {
+      return getTasks(addDays(dateKey, -1)).filter(task => !task.done);
+    }
+
+    function defaultGroupedPosition(tasks, targetCategory) {
+      const ordered = normalizeTasks(tasks);
+      const same = ordered.filter(task => task.category === targetCategory);
+      if (same.length > 0) return Math.max(...same.map(task => task.position)) + 0.01;
+      const categoryRank = CATEGORY_ORDER.indexOf(targetCategory);
+      const before = ordered.filter(task => CATEGORY_ORDER.indexOf(task.category) < categoryRank);
+      if (before.length === 0) return 0;
+      return Math.max(...before.map(task => task.position)) + 0.01;
+    }
+
+    function normalizeTasks(tasks) {
+      return [...tasks].sort((a, b) => {
+        if ((a.position || 0) !== (b.position || 0)) return (a.position || 0) - (b.position || 0);
+        return CATEGORY_ORDER.indexOf(a.category) - CATEGORY_ORDER.indexOf(b.category);
+      });
+    }
+
+    function renumber(tasks) {
+      return normalizeTasks(tasks).map((task, index) => ({ ...task, position: index + 1 }));
+    }
+
+    function loadStore() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        return raw ? JSON.parse(raw) : emptyStore();
+      } catch (error) {
+        return emptyStore();
+      }
+    }
+
+    function saveStore() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(store));
+    }
+
+    function emptyStore() {
+      return { byDate: {} };
+    }
+
+    function todayKey() {
+      const d = new Date();
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, "0");
+      const day = String(d.getDate()).padStart(2, "0");
+      return `${y}-${m}-${day}`;
+    }
+
+    function addDays(sourceDateKey, diff) {
+      const d = new Date(`${sourceDateKey}T00:00:00`);
+      d.setDate(d.getDate() + diff);
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, "0");
+      const day = String(d.getDate()).padStart(2, "0");
+      return `${y}-${m}-${day}`;
+    }
+
+    function formatDate(sourceDateKey) {
+      return String(sourceDateKey || "").replaceAll("-", "/");
+    }
+
+    function uid() {
+      return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function escapeAttr(value) {
+      return escapeHtml(value);
+    }
+  </script>
 </body>
 </html>
